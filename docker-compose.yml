@@ -1,0 +1,26 @@
+# Runs the three bridge servers. `cp .env.example .env`, fill in PALABRA_API_KEY, then:
+#   docker compose up --build
+services:
+  vapi:
+    build: ./vapi
+    env_file:
+      - path: .env
+        required: false
+    ports: ["8080:8080"]
+    restart: unless-stopped
+
+  jambonz:
+    build: ./jambonz
+    env_file:
+      - path: .env
+        required: false
+    ports: ["8081:8081"]
+    restart: unless-stopped
+
+  wyoming:
+    build: ./wyoming
+    env_file:
+      - path: .env
+        required: false
+    ports: ["10300:10300"]
+    restart: unless-stopped

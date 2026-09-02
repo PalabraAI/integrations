@@ -1,0 +1,85 @@
+# Shared ruff config for all integrations — mirrors streaming_api's rules
+# (select = ALL with the same ignore list), so the bar is at least as strict.
+target-version = "py310"
+line-length = 120
+indent-width = 4
+exclude = ["*.md", "__pycache__", "dist", "venv", ".venv", "build"]
+
+[lint]
+select = ["ALL"]
+ignore = [
+    "RUF012",   # mutable class attributes should be annotated with typing.ClassVar
+    "ASYNC110", # use `anyio.Event` instead of awaiting `anyio.sleep` in a `while` loop
+    "ASYNC230", # async functions should not open files with blocking methods like `open`
+    "B008",     # function calls in default function arguments
+    "B023",     # function definition does not bind loop variable
+    "B904",     # raise statements in exception handlers that lack a from clause
+    "E731",     # lambda expressions which are assigned to a variable
+    "PT001",    # argument-free @pytest.fixture() decorators with or without parentheses
+    "PT006",    # the type of parameter names passed to pytest.mark.parametrize
+    "RUF001",   # ambiguous Unicode characters in strings
+    "RUF006",   # store a reference to the return value of `asyncio.ensure_future`
+    "COM812",   # the absence of trailing commas
+    "S101",     # use of `assert` detected
+    "S311",     # standard pseudo-random generators are not suitable for cryptographic purposes
+    "BLE001",   # blind except
+    "PERF203",  # `try`-`except` within a loop incurs performance overhead
+    "PERF401",  # use a list comprehension to create a transformed list
+    "ISC001",   # implicitly concatenated string literals on one line
+    "E402",     # imports that are not at the top of the file
+    "FIX002",   # line contains todo, consider resolving the issue
+    "PLW2901",  # `for` loop variable overwritten by assignment target
+    "RET503",   # missing explicit `return` at the end of function
+    "D100", "D101", "D102", "D103", "D104", "D105", "D106", "D107",
+    "D200", "D203", "D205", "D212", "D211", "D400", "D401", "D415",
+    "ANN",  # flake8-annotations
+    "Q",    # flake8-quotes
+    "UP",   # pyupgrade
+    "PLR",  # refactor
+    "FBT",  # flake8-boolean-trap
+    "SIM",  # flake8-simplify
+    "N",    # pep8-naming
+    "TRY",  # tryceratops
+    "SLF",  # flake8-self
+    "C90",  # mccabe
+    "BLE",  # flake8-blind-except
+    "ERA",  # eradicate
+    "TC",   # flake8-type-checking
+    "EM",   # flake8-errmsg
+    "DJ",   # flake8-django
+    "T10",  # flake8-debugger
+    "TD",   # flake8-todos
+    "EXE",  # flake8-executable
+    "PTH",  # flake8-use-pathlib
+    "G",    # flake8-logging-format
+    "CPY",  # flake8-copyright
+    "DOC",  # pydoclint
+]
+fixable = ["ALL"]
+unfixable = []
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[lint.per-file-ignores]
+"**/__init__.py" = ["F401"]
+# examples, tests and console entrypoints are standalone scripts: prints are
+# their UI, and they live outside packages
+"**/examples/*" = ["T201", "INP001", "PLC0415"]
+"**/tests/*" = ["T201", "INP001", "PT011", "PLC0415", "S105", "S106", "ARG001", "ARG002", "ARG005", "S110", "E501"]
+"**/__main__.py" = ["T201"]
+# the Agents SDK dictates these signatures: the `input` argument name and the
+# unused trace_* / model_name parameters come from the abstract interfaces
+"openai-agents/src/palabra_openai_agents/_stt.py" = ["A002", "ARG002"]
+"openai-agents/src/palabra_openai_agents/_provider.py" = ["ARG002"]
+# sounddevice callback signature (indata, frames, time, status)
+"openai-agents/examples/voice_agent_mic.py" = ["ARG001"]
+# Wyoming's AsyncEventHandler.__init__(reader, writer) is forwarded untouched
+"wyoming/src/wyoming_palabra/*.py" = ["ANN"]
+
+[format]
+quote-style = "single"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
+
+[lint.isort]
+known-first-party = ["palabra_openai_agents", "palabra_vapi", "palabra_jambonz", "wyoming_palabra"]

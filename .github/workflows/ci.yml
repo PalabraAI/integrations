@@ -1,0 +1,89 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      live:
+        description: also run the live tests against the Palabra API (needs the PALABRA_API_KEY secret)
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/ruff-action@v3
+        with:
+          args: check .
+      - uses: astral-sh/ruff-action@v3
+        with:
+          args: format --check .
+
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.12", "3.13"]
+        package: [openai-agents, vapi, jambonz, wyoming]
+    defaults:
+      run:
+        working-directory: ${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: python -m pytest -q -m "not live"
+      - run: python -m build
+      - uses: actions/upload-artifact@v4
+        if: matrix.python-version == '3.12'
+        with:
+          name: dist-${{ matrix.package }}
+          path: ${{ matrix.package }}/dist/*
+
+  live:
+    if: github.event_name == 'workflow_dispatch' && inputs.live
+    runs-on: ubuntu-latest
+    needs: test
+    env:
+      PALABRA_API_KEY: ${{ secrets.PALABRA_API_KEY }}
+    strategy:
+      max-parallel: 1  # one API Key = one live STT session at a time
+      matrix:
+        package: [openai-agents, vapi, jambonz, wyoming]
+    defaults:
+      run:
+        working-directory: ${{ matrix.package }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -e ".[dev]"
+      - run: python -m pytest -q -m live -s
+
+  docker:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        package: [vapi, jambonz, wyoming]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.package }}
+          push: false
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
