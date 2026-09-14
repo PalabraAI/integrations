@@ -58,7 +58,6 @@ jobs:
     env:
       PALABRA_API_KEY: ${{ secrets.PALABRA_API_KEY }}
     strategy:
-      max-parallel: 1  # one API Key = one live STT session at a time
       matrix:
         package: [openai-agents, vapi, jambonz, wyoming]
     defaults:

@@ -23,20 +23,6 @@ def make_client(fake: FakePalabra, **overrides) -> TestClient:
     return TestClient(create_app(settings, client_factory=fake.for_key))
 
 
-class KeyedFake(FakePalabra):
-    """One fake per API key so the assistant channel can be told apart."""
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.by_key: dict = {}
-
-    def for_key(self, key):
-        if key not in self.by_key:
-            child = FakePalabra(stt_script=list(self.stt_script), fin_text=self.fin_text)
-            self.by_key[key] = child
-        return self.by_key[key]
-
-
 def test_healthz(fake):
     with make_client(fake) as client:
         r = client.get('/healthz')
@@ -47,14 +33,13 @@ def test_healthz(fake):
 def test_settings_from_env():
     env = {
         'PALABRA_API_KEY': 'k',
-        'PALABRA_API_KEY_ASSISTANT': 'k2',
         'VAPI_SECRET': 's',
         'PALABRA_LANGUAGE': 'de-DE',
         'VAPI_SEND_PARTIALS': 'true',
         'PALABRA_VOICE_ID': 'default_high',
     }
     s = Settings.from_env(env)
-    assert (s.palabra_api_key, s.assistant_api_key, s.vapi_secret) == ('k', 'k2', 's')
+    assert (s.palabra_api_key, s.vapi_secret) == ('k', 's')
     assert s.stt_language == 'de-DE'
     assert s.send_partials is True
     assert s.voice_id == 'default_high'
@@ -67,8 +52,8 @@ def test_transcriber_rejects_bad_secret(fake):
 
 
 def test_transcriber_splits_stereo_and_forwards_finals_at_native_rate():
-    fake = KeyedFake(stt_script=[transcript('partial', eos=False), transcript('Hello from the customer.')])
-    with make_client(fake, assistant_api_key='k-assistant', vapi_secret='shh') as client:
+    fake = FakePalabra(stt_script=[transcript('partial', eos=False), transcript('Hello from the customer.')])
+    with make_client(fake, vapi_secret='shh') as client:
         with client.websocket_connect('/transcriber', headers={'x-vapi-secret': 'shh'}) as ws:
             ws.send_text(
                 json.dumps(
@@ -85,8 +70,7 @@ def test_transcriber_splits_stereo_and_forwards_finals_at_native_rate():
         ('assistant', 'Hello from the customer.', 'final'),
         ('customer', 'Hello from the customer.', 'final'),
     ]
-    customer = fake.by_key['k-customer'].stt_sessions[0]
-    assistant = fake.by_key['k-assistant'].stt_sessions[0]
+    customer, assistant = fake.stt_sessions  # one session per channel, both on the single API Key
     assert customer.params == {'language': None, 'sample_rate': 8000}
     assert customer.sent == [left.tobytes()]  # de-interleaved: no resampling, no padding
     assert assistant.sent == [right.tobytes()]
@@ -97,11 +81,11 @@ def test_transcriber_splits_stereo_and_forwards_finals_at_native_rate():
     assert assistant.closed
 
 
-def test_transcriber_customer_only_without_second_key_and_partials():
-    fake = KeyedFake(stt_script=[transcript('Hel', eos=False), transcript('Hello.')])
+def test_transcriber_mono_call_and_partials():
+    fake = FakePalabra(stt_script=[transcript('Hel', eos=False), transcript('Hello.')])
     with make_client(fake, send_partials=True, stt_language='en-US') as client:
         with client.websocket_connect('/transcriber') as ws:
-            ws.send_text(json.dumps({'type': 'start', 'sampleRate': 16000, 'channels': 2}))
+            ws.send_text(json.dumps({'type': 'start', 'sampleRate': 16000, 'channels': 1}))
             ws.send_bytes(np.zeros(640, dtype=np.int16).tobytes())
             first = ws.receive_json()
             second = ws.receive_json()
@@ -112,8 +96,8 @@ def test_transcriber_customer_only_without_second_key_and_partials():
         'transcriptType': 'partial',
     }
     assert second['transcriptType'] == 'final'
-    assert list(fake.by_key) == ['k-customer']
-    assert fake.by_key['k-customer'].stt_sessions[0].params['language'] == 'en'
+    assert len(fake.stt_sessions) == 1  # a mono call has no assistant channel
+    assert fake.stt_sessions[0].params['language'] == 'en'
 
 
 def test_tts_streams_raw_pcm_at_requested_rate(fake):

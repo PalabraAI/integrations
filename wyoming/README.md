@@ -51,5 +51,6 @@ PALABRA_API_KEY=plbr_... pytest -m live -s    # describe -> synthesize -> transc
 
 Checked against wyoming 1.10 (required `Info` / `Artifact` fields, optional `Synthesize.voice`, one handler
 per connection) and exercised end-to-end with `wyoming.client.AsyncTcpClient` — the class Home Assistant
-uses — against the Palabra API. Not yet run inside a live Home Assistant. Palabra STT allows one live
-session per API Key, so one voice command is transcribed at a time.
+uses — against the Palabra API. Not yet run inside a live Home Assistant. Each connection opens its own
+Palabra STT session with the same API Key, so voice commands from several satellites are transcribed in
+parallel.

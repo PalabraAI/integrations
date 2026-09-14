@@ -24,8 +24,9 @@ README, tests and (for the servers) Docker image.
   faster than that are not transcribed. Live sources are never delayed by the pacer.
 - TTS text is split into sentences under the server's 1024-character limit and the audio is streamed in
   order, one sentence at a time.
-- One API Key supports **one live STT session** at a time (a second connection gets `409`). Servers that
-  handle concurrent calls need a pool of keys.
+- One API Key is **not** limited to a single live STT session: every call / connection opens its own
+  session with the same key (verified with 10 parallel sessions against the API). The only cap is the
+  concurrent-session quota of the Palabra account.
 
 ## Development
 

@@ -8,8 +8,8 @@ stereo, channel 0 = customer, channel 1 = assistant. We answer with
 ``{"type": "transcriber-response", "transcription", "channel", "transcriptType"}``.
 
 Each channel is fed to its own Palabra STT session at the call's native sample
-rate (the ASR resamples server-side). One API Key supports one live session, so
-the assistant channel is transcribed only when a second key is configured.
+rate (the ASR resamples server-side). Both sessions are opened with the same
+API Key: a key is not limited to one live STT session.
 """
 
 from __future__ import annotations
@@ -98,15 +98,11 @@ class TranscriberConnection:
         self._channels = int(msg.get('channels', 2))
         log.info('call started: %d Hz, %d channel(s)', self._sample_rate, self._channels)
 
-        keys = {'customer': self._settings.palabra_api_key}
-        if self._channels >= 2:
-            if self._settings.assistant_api_key:
-                keys['assistant'] = self._settings.assistant_api_key
-            else:
-                log.info('assistant channel not transcribed: set PALABRA_API_KEY_ASSISTANT to enable')
+        names = CHANNEL_NAMES[: min(self._channels, len(CHANNEL_NAMES))]
         language = short_lang(self._settings.stt_language)
-        for name, key in keys.items():
-            session = self._client_factory(key).stt(language=language, sample_rate=self._sample_rate)
+        client = self._client_factory(self._settings.palabra_api_key)
+        for name in names:
+            session = client.stt(language=language, sample_rate=self._sample_rate)
             await session.__aenter__()
             channel = _Channel(name=name, session=session, pacer=Pacer(self._sample_rate), forwarder=None)  # type: ignore[arg-type]
             channel.forwarder = asyncio.create_task(self._forward(channel), name=f'vapi-forward-{name}')

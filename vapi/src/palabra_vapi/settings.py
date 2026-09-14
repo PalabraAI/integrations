@@ -14,8 +14,6 @@ class Settings:
     """All knobs of the bridge. See ``from_env`` for the variable names."""
 
     palabra_api_key: str | None = None
-    #: A second API Key for the assistant channel: one key supports one live STT session.
-    assistant_api_key: str | None = None
     #: If set, ``x-vapi-secret`` must match on every request.
     vapi_secret: str | None = None
     #: STT source language; ``None`` = server-side auto-detection.
@@ -33,7 +31,6 @@ class Settings:
         env = os.environ if env is None else env
         return cls(
             palabra_api_key=env.get('PALABRA_API_KEY') or None,
-            assistant_api_key=env.get('PALABRA_API_KEY_ASSISTANT') or None,
             vapi_secret=env.get('VAPI_SECRET') or None,
             stt_language=env.get('PALABRA_STT_LANGUAGE') or env.get('PALABRA_LANGUAGE') or None,
             send_partials=env.get('VAPI_SEND_PARTIALS', '').lower() in _TRUE,

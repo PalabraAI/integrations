@@ -70,4 +70,4 @@ PALABRA_API_KEY=plbr_... pytest -m live -s    # /tts (8 kHz wav) -> /stt round t
 Protocol checked against the current jambonz documentation and the reference
 [custom-speech-example](https://github.com/jambonz/custom-speech-example); exercised end-to-end against the
 Palabra API with a test client playing jambonz's part (8 kHz). Not yet run against a live jambonz.
-Palabra STT allows one live session per API Key — concurrent calls need a pool of keys.
+Concurrent calls each open their own Palabra STT session with the same API Key.

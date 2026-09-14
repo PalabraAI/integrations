@@ -62,4 +62,5 @@ PALABRA_TEST_WAV=my.wav PALABRA_TEST_LANGUAGE=ru pytest -m live -k user_recordin
 
 ## Notes
 
-- Palabra STT allows one live session per API Key; a parallel `create_session` gets `409`.
+- One API Key is not limited to a single live STT session: parallel `create_session` / `transcribe` calls
+  each open their own session with the same key.

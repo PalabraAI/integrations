@@ -29,8 +29,7 @@ The server must be reachable from Vapi (public `https://` / `wss://`, e.g. `ngro
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `PALABRA_API_KEY` | — | Palabra API Key (customer channel, TTS) |
-| `PALABRA_API_KEY_ASSISTANT` | — | second key; when set, the assistant channel is transcribed too |
+| `PALABRA_API_KEY` | — | Palabra API Key (both STT channels and TTS) |
 | `VAPI_SECRET` | — | if set, requests without a matching `x-vapi-secret` are rejected |
 | `PALABRA_STT_LANGUAGE` | auto-detect | STT source language (`en`, `de-DE`, ...) |
 | `VAPI_SEND_PARTIALS` | `false` | also forward interim transcripts as `transcriptType: "partial"` |
@@ -75,11 +74,11 @@ still delivered where possible, then closes the Palabra sessions.
 `200`, `Content-Type: application/octet-stream`, chunked raw PCM. Validation problems and Palabra errors
 that happen before the first audio chunk are reported as JSON `{"error": "..."}` with `400` / `401` / `502`.
 
-## One key = one STT session
+## Concurrency
 
-Palabra STT allows one live session per API Key (`409` on a second connection), so by default only the
-customer channel is transcribed and the bridge serves one call at a time. Set `PALABRA_API_KEY_ASSISTANT`
-for the assistant channel; run one bridge instance per key (or add a key pool) for concurrent calls.
+Every call opens one Palabra STT session per channel (customer and assistant), all with the same
+`PALABRA_API_KEY`. A key is not limited to one live session, so a single bridge instance serves concurrent
+calls; the only cap is the concurrent-session quota of your Palabra account.
 
 ## Tests
 

@@ -1,5 +1,18 @@
 # Changelog
 
+## Unreleased
+
+### All integrations
+
+- Docs: an API Key is **not** limited to one live STT session — 10 parallel sessions on one key were
+  verified against the API. The "one key = one session (`409`)" notes were wrong; a `409` is returned
+  only when the same session token is reused. Live CI jobs run in parallel again.
+
+### vapi
+
+- Both call channels are transcribed with the single `PALABRA_API_KEY`. `PALABRA_API_KEY_ASSISTANT` is
+  removed — a second key was never needed.
+
 ## 0.2.0 — 2026-09-02
 
 ### All integrations
