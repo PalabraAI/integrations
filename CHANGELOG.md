@@ -1,22 +1,14 @@
 # Changelog
 
-## Unreleased
+## 0.1.0 — 2026-09-15
+
+First public release of `palabra-ai-openai-agents`, `palabra-ai-vapi-bridge`, `palabra-ai-jambonz-bridge`
+and `wyoming-palabra`.
 
 ### All integrations
 
-- Docs: an API Key is **not** limited to one live STT session — 10 parallel sessions on one key were
-  verified against the API. The "one key = one session (`409`)" notes were wrong; a `409` is returned
-  only when the same session token is reused. Live CI jobs run in parallel again.
-
-### vapi
-
-- Both call channels are transcribed with the single `PALABRA_API_KEY`. `PALABRA_API_KEY_ASSISTANT` is
-  removed — a second key was never needed.
-
-## 0.2.0 — 2026-09-02
-
-### All integrations
-
+- One API Key serves any number of concurrent STT sessions (one per call / connection); the only cap is
+  the account's concurrent-session quota.
 - **No more client-side resampling.** Audio is sent to Palabra STT at its native
   sample rate via the `sample_rate` parameter; the ASR resamples server-side
   (8 kHz telephony, 16 kHz, 24 kHz Agents SDK audio, 44.1/48 kHz all verified
@@ -43,6 +35,7 @@
 
 ### vapi
 
+- Both call channels (customer and assistant) are transcribed with the single `PALABRA_API_KEY`.
 - Interim transcripts forwarded as `transcriptType: "partial"` when `VAPI_SEND_PARTIALS=true`.
 - Request validation and JSON errors for `/tts`; the first audio chunk is
   fetched before the `200` is committed.
@@ -60,7 +53,3 @@
 - Streaming synthesis (`synthesize-start` / `synthesize-chunk` / `synthesize-stop`)
   for Home Assistant's streaming TTS.
 - Any sample width / channel count from Wyoming clients is converted to pcm_s16le mono.
-
-## 0.1.0
-
-- Initial release.

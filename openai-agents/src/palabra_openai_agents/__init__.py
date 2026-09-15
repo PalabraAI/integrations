@@ -21,5 +21,5 @@ from ._provider import PalabraVoiceModelProvider
 from ._stt import PalabraSTTModel, PalabraTranscriptionSession
 from ._tts import PalabraTTSModel
 
-__version__ = '0.2.0'
+__version__ = '0.1.0'
 __all__ = ['PalabraSTTModel', 'PalabraTTSModel', 'PalabraTranscriptionSession', 'PalabraVoiceModelProvider']

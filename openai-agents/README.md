@@ -36,8 +36,8 @@ config = VoicePipelineConfig(model_provider=PalabraVoiceModelProvider(stt_langua
 pipeline = VoicePipeline(workflow=..., config=config)
 ```
 
-Examples: [`examples/voice_agent_mic.py`](examples/voice_agent_mic.py) (microphone → agent → speakers,
-needs `sounddevice` and `OPENAI_API_KEY`) and [`examples/voice_agent_file.py`](examples/voice_agent_file.py)
+Examples: [`examples/voice_agent_mic.py`](https://github.com/PalabraAI/integrations/blob/main/openai-agents/examples/voice_agent_mic.py) (microphone → agent → speakers,
+needs `sounddevice` and `OPENAI_API_KEY`) and [`examples/voice_agent_file.py`](https://github.com/PalabraAI/integrations/blob/main/openai-agents/examples/voice_agent_file.py)
 (WAV question in, WAV answer out).
 
 ## How it maps

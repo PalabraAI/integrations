@@ -1,6 +1,6 @@
 """jambonz custom speech (STT/TTS) vendor backed by Palabra Realtime STT/TTS."""
 
-__version__ = '0.2.0'
+__version__ = '0.1.0'
 
 from .app import create_app
 from .settings import Settings
